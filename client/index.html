@@ -1,0 +1,72 @@
+<html>
+<head>
+
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+    <script>
+        (function () {
+            $(document).ready(function () {
+                $('#connectButton').click(function () {
+                    connectAndStartSendingMessages();
+                });
+
+                var $message = $('#message');
+                var websocket;
+
+                var lastMessageTimestamp = 0;
+                var roundTripCount = 0;
+                var totalLatency = 0;
+
+                var connectAndStartSendingMessages = function () {
+                    var backend = $("#backendInput").val();
+
+                    if (!backend) {
+                        $message.html('Backend URL is required');
+                        return;
+                    }
+
+                    websocket = new WebSocket(backend);
+
+                    websocket.onopen = function (event) {
+                        $message.html('Connected');
+                        sendMessage();
+                    };
+
+                    websocket.onmessage = function (event) {
+                        var now = new Date().getTime();
+                        var latency = now - lastMessageTimestamp;
+
+                        roundTripCount++;
+                        totalLatency += latency;
+
+                        $message.html('Current round trip latency : ' + latency + ' <br> Avg round trip latency : ' + totalLatency / roundTripCount);
+                        sendMessage();
+                    };
+
+                    websocket.onclose = function (event) {
+                        $message.html('Disconnected.');
+                    };
+
+                    websocket.onerror = function (event) {
+                        console.error("Error occurred", event);
+                    };
+                };
+
+                var sendMessage = function () {
+                    lastMessageTimestamp = new Date().getTime();
+                    websocket.send("X");
+                };
+            });
+        })();
+    </script>
+</head>
+<body>
+<div>
+    <input type="text" id="backendInput" style="width: 400px;" value="ws://localhost:8025/echo">
+    <button id="connectButton">Connect</button>
+    <div id="message">
+        Not connected!
+    </div>
+</div>
+</body>
+</html>

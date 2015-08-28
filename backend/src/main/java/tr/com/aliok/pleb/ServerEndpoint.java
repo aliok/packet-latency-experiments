@@ -24,7 +24,7 @@ public class ServerEndpoint {
 
     @OnMessage
     public void onCommand(String message, Session session) {
-        LOG.info("Echoing received message: '{}' from session {}", message, session);
+        LOG.debug("Echoing received message: '{}' from session {}", message, session);
         session.getAsyncRemote().sendText(message);
     }
 
